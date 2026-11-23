@@ -41,7 +41,7 @@
   label.op { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
   label.op input { margin-top: 5px; accent-color: var(--ameixa); }
   .txt label { display: block; font-size: 14px; color: var(--cinza); margin-bottom: 4px; }
-  input[type=text], input[type=number], input[type=date] {
+  input[type=text], input[type=date] {
     width: 100%; font: inherit; padding: 10px 12px; border: 1px solid #B9B4C0; border-radius: 0; background: #fff; color: var(--escuro);
   }
   .duas { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -74,7 +74,7 @@
   <div class="wrap">
     <span class="etiqueta mono">ferramenta gratuita</span>
     <h1 class="titulo">Leitura do dado</h1>
-    <p>Oito perguntas antes de colocar um número de pesquisa na sua apresentação. No fim, você recebe a frase que dá para usar, os limites que precisam aparecer junto e o que o número não permite concluir.</p>
+    <p>Escreva o número que você quer usar e responda oito perguntas sobre a pesquisa. No fim, você recebe uma frase mais segura para usar, o rodapé da fonte e o que o número não permite concluir.</p>
   </div>
 </header>
 
@@ -103,7 +103,7 @@
 
     <fieldset>
       <legend><span class="num mono">02</span><span class="q">Quantas pessoas responderam?</span></legend>
-      <div class="campos txt"><label for="n">Número de entrevistas (deixe em branco se a fonte não informa)</label><input type="number" id="n" min="1" inputmode="numeric" placeholder="Ex.: 1044"></div>
+      <div class="campos txt"><label for="n">Número de entrevistas (deixe em branco se a fonte não informa)</label><input type="text" id="n" inputmode="numeric" placeholder="Ex.: 1.044"></div>
     </fieldset>
 
     <fieldset>
@@ -158,7 +158,7 @@
 
     <fieldset>
       <legend><span class="num mono">08</span><span class="q">A fonte informa margem de erro?</span></legend>
-      <div class="campos txt"><label for="margem">Margem em pontos percentuais (deixe em branco se não informa)</label><input type="number" id="margem" min="0" step="0.1" inputmode="decimal" placeholder="Ex.: 3"></div>
+      <div class="campos txt"><label for="margem">Margem em pontos percentuais (deixe em branco se não informa)</label><input type="text" id="margem" inputmode="decimal" placeholder="Ex.: 3 ou 2,5"></div>
     </fieldset>
 
     <div class="acoes"><button type="submit" class="btn">Ver a leitura</button></div>
@@ -168,7 +168,7 @@
 <section id="resultado" hidden aria-live="polite" tabindex="-1">
   <div class="wrap">
     <h2 class="titulo">A leitura</h2>
-    <div class="bloco"><h3 class="mono">Frase que dá para usar</h3><p class="frase" id="r-frase"></p><button type="button" class="copiar" data-alvo="r-frase">copiar frase</button></div>
+    <div class="bloco"><h3 class="mono">Frase sugerida</h3><p class="rodape" style="color:#E4E1E8;margin:0 0 10px">Confira o verbo e o recorte antes de copiar. Os alertas abaixo dizem o que ajustar.</p><p class="frase" id="r-frase"></p><button type="button" class="copiar" data-alvo="r-frase">copiar frase</button></div>
     <div class="bloco"><h3 class="mono">Rodapé da fonte</h3><p class="rodape mono" id="r-rodape"></p><button type="button" class="copiar" data-alvo="r-rodape">copiar rodapé</button></div>
     <div class="bloco"><h3 class="mono">Limites para citar junto</h3><ul id="r-limites"></ul></div>
     <div class="bloco"><h3 class="mono">O que o número não permite concluir</h3><ul id="r-nao"></ul></div>
@@ -212,16 +212,17 @@ function ler(r, hoje = new Date()) {
   if (r.interesse === 'setor') limites.push(`Quem encomendou${r.pagou.trim() ? ' (' + r.pagou.trim() + ')' : ''} é do setor estudado. Cite o nome junto do número para que o leitor pese isso.`);
   if (r.interesse === 'ni') limites.push('Não está claro quem pagou pela pesquisa. Diga isso ou procure a fonte original.');
 
-  // 02 Amostra
-  const n = parseInt(r.n, 10);
+  // 02 Amostra. Aceita "1.044" e "1044"; margem aceita "2,5".
+  const n = parseInt(String(r.n).replace(/\D/g, ''), 10);
+  const m = parseFloat(String(r.margem).replace(',', '.'));
   if (!n) {
     limites.push('O número de entrevistas não foi informado. Sem ele, não dá para saber a precisão do resultado.');
   } else {
     const mt = margemTeorica(n);
     if (n < 100) limites.push(`Com ${num(n)} entrevistas, o resultado serve como indício, não como medida.`);
-    if (r.coleta === 'online') limites.push(`Com ${num(n)} entrevistas, a margem teórica seria de cerca de ${num(mt)} pontos para mais ou para menos. Em painel online essa conta é só uma aproximação, porque a amostra não é sorteada.`);
-    else if (r.coleta !== 'registro') limites.push(`Com ${num(n)} entrevistas, a margem teórica é de cerca de ${num(mt)} pontos para mais ou para menos, considerando o total da amostra.`);
-    nao.push('Recortes por idade, região ou renda têm menos entrevistas e, portanto, margem maior que a do total.');
+    if (!(m >= 0) && r.coleta === 'online') limites.push(`A fonte não informa margem de erro. Com ${num(n)} entrevistas, ela seria de cerca de ${num(mt)} pontos para mais ou para menos, mas em painel online essa conta é só uma aproximação, porque a amostra não é sorteada. Não apresente esse número como dado da pesquisa.`);
+    else if (!(m >= 0) && r.coleta !== 'registro') limites.push(`A fonte não informa margem de erro. Com ${num(n)} entrevistas, ela seria de cerca de ${num(mt)} pontos para mais ou para menos. Não apresente esse número como dado da pesquisa.`);
+    if (r.coleta !== 'registro') nao.push('Recortes por idade, região ou renda têm menos entrevistas e, portanto, margem maior que a do total.');
   }
 
   // 03 Público
@@ -238,6 +239,7 @@ function ler(r, hoje = new Date()) {
 
   // 05 Intenção x fato
   if (r.mede === 'intencao') {
+    if (/\b(compram|compra|compraram|comprou|usam|usa|fazem|faz|preferem|escolhem)\b/i.test(dado)) limites.push('Seu texto descreve como fato algo que a pesquisa mede como intenção. Troque o verbo antes de usar, por exemplo "pretendem comprar" no lugar de "compram".');
     limites.push('É intenção declarada. Use verbos como "pretendem", "planejam" ou "dizem", nunca "compram".');
     nao.push('Não dá para prever quantas pessoas vão de fato comprar. O que as pessoas dizem que vão fazer costuma ser diferente do que fazem.');
   }
@@ -254,13 +256,11 @@ function ler(r, hoje = new Date()) {
 
   // 07 Região
   if (r.regiao === 'parte') nao.push(`Não dá para estender o resultado para o Brasil inteiro. Ele cobre ${r.onde.trim() || 'só parte do país'}.`);
-  if (r.regiao === 'fora') nao.push(`Não dá para aplicar ao Brasil sem dizer que o dado é de ${r.onde.trim() || 'fora do país'}.`);
+  if (r.regiao === 'fora') nao.push(`Não dá para aplicar ao Brasil sem dizer que o dado vem de fora${r.onde.trim() ? ' (' + r.onde.trim() + ')' : ''}.`);
   if (r.regiao === 'ni') limites.push('A fonte não diz que lugar a pesquisa cobre.');
 
   // 08 Margem
-  const m = parseFloat(String(r.margem).replace(',', '.'));
   if (m >= 0) nao.push(`Diferenças menores que ${num(2 * m)} pontos entre dois grupos podem não ser reais, já que a margem é de ${num(m)} pontos para cada lado.`);
-  else if (n && r.coleta !== 'registro') limites.push('A fonte não informa margem de erro. Use a margem teórica acima como referência, sem apresentá-la como dado da pesquisa.');
 
   // Rodapé
   const metodo = { online: 'online', telefone: 'por telefone', presencial: 'presenciais' }[r.coleta];
@@ -307,7 +307,7 @@ document.querySelectorAll('.copiar').forEach(b => b.addEventListener('click', as
 
 $('preencher').addEventListener('click', () => {
   // Pesquisa LWSA / Opinion Box, Black Friday 2026 (CNDL, 22/09/2026).
-  const v = { dado: '20% planejam fazer todas as compras na sexta, 27/11', fez: 'Opinion Box', pagou: 'LWSA', n: '1044',
+  const v = { dado: '20% planejam fazer todas as compras na sexta, 27/11', fez: 'Opinion Box', pagou: 'LWSA', n: '1.044',
     quem: 'quem pretende comprar na Black Friday', ini: '2026-07-31', fim: '2026-08-19', margem: '3', onde: '' };
   Object.entries(v).forEach(([k, x]) => $(k).value = x);
   [['interesse', 'setor'], ['publico', 'grupo'], ['coleta', 'online'], ['mede', 'intencao'], ['regiao', 'br']]
