@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leitura do dado · Diego Major</title>
+<meta name="description" content="Oito perguntas antes de colocar um número de pesquisa na sua apresentação. Devolve a frase que dá para usar, os limites a citar e o que não dá para concluir.">
+<meta property="og:title" content="Leitura do dado">
+<meta property="og:description" content="Oito perguntas antes de colocar um número de pesquisa na sua apresentação.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Antonio:wght@700&family=IBM+Plex+Mono:wght@500&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ameixa: #79519A; --lilas: #C2A4DF; --verde: #D6EE51;
+    --preto: #000000; --escuro: #151515; --claro: #F7F8FA; --linha: #D9D6DE; --cinza: #55505C;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--claro); color: var(--escuro); font: 400 17px/1.5 Inter, system-ui, sans-serif; }
+  .titulo { font-family: Antonio, "Arial Narrow", sans-serif; font-weight: 700; line-height: .95; letter-spacing: 0; }
+  .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: 500; }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--ameixa); outline-offset: 2px; }
+
+  header { background: var(--preto); color: var(--claro); border-left: 16px solid var(--ameixa); padding: 40px 20px 36px; }
+  header .wrap, main, footer { max-width: 760px; margin: 0 auto; }
+  .etiqueta { display: inline-block; background: var(--verde); color: var(--escuro); padding: 4px 10px; font-size: 13px; text-transform: uppercase; letter-spacing: .05em; }
+  header h1 { font-size: clamp(56px, 12vw, 96px); margin: 18px 0 14px; }
+  header p { max-width: 560px; margin: 0; color: #E4E1E8; }
+
+  main { padding: 28px 20px 8px; }
+  .exemplo { margin: 0 0 24px; font-size: 15px; color: var(--cinza); }
+  .exemplo button { font: inherit; color: var(--ameixa); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
+
+  fieldset { border: 0; border-top: 1px solid var(--linha); margin: 0; padding: 22px 0; }
+  legend { padding: 0; display: flex; gap: 14px; align-items: baseline; }
+  legend .num { color: var(--ameixa); font-size: 15px; min-width: 22px; }
+  legend .q { font-weight: 600; }
+  .ajuda { margin: 6px 0 12px 36px; font-size: 15px; color: var(--cinza); }
+  .campos { margin-left: 36px; display: grid; gap: 10px; }
+  label.op { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+  label.op input { margin-top: 5px; accent-color: var(--ameixa); }
+  .txt label { display: block; font-size: 14px; color: var(--cinza); margin-bottom: 4px; }
+  input[type=text], input[type=number], input[type=date] {
+    width: 100%; font: inherit; padding: 10px 12px; border: 1px solid #B9B4C0; border-radius: 0; background: #fff; color: var(--escuro);
+  }
+  .duas { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .dado input { font-size: 19px; }
+
+  .acoes { padding: 8px 0 32px; border-top: 1px solid var(--linha); }
+  .btn { font: 600 17px Inter, sans-serif; background: var(--ameixa); color: #fff; border: 0; padding: 14px 22px; cursor: pointer; margin-top: 20px; }
+  .btn:hover { background: #654282; }
+
+  #resultado { background: var(--preto); color: var(--claro); padding: 32px 20px 36px; border-left: 16px solid var(--ameixa); }
+  #resultado[hidden] { display: none; }
+  #resultado .wrap { max-width: 760px; margin: 0 auto; }
+  #resultado h2 { font-size: clamp(40px, 8vw, 60px); margin: 0 0 24px; }
+  .bloco { border-top: 1px solid #3A3540; padding: 20px 0; }
+  .bloco h3 { margin: 0 0 10px; color: var(--lilas); font-size: 14px; text-transform: uppercase; letter-spacing: .05em; }
+  .frase { font-size: 21px; line-height: 1.4; margin: 0; }
+  .rodape { color: var(--verde); font-size: 14px; margin: 0; overflow-wrap: anywhere; }
+  .bloco ul { margin: 0; padding-left: 20px; }
+  .bloco li { margin: 6px 0; }
+  .copiar { font: 500 13px "IBM Plex Mono", monospace; background: none; color: var(--claro); border: 1px solid #6B6474; padding: 6px 10px; margin-top: 12px; cursor: pointer; }
+  .convite { margin-top: 8px; padding-top: 20px; border-top: 1px solid #3A3540; color: #E4E1E8; }
+  .convite a { color: var(--verde); }
+
+  footer { padding: 24px 20px 40px; font-size: 14px; color: var(--cinza); }
+  @media (max-width: 520px) { .duas { grid-template-columns: 1fr; } .ajuda, .campos { margin-left: 0; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <span class="etiqueta mono">ferramenta gratuita</span>
+    <h1 class="titulo">Leitura do dado</h1>
+    <p>Oito perguntas antes de colocar um número de pesquisa na sua apresentação. No fim, você recebe a frase que dá para usar, os limites que precisam aparecer junto e o que o número não permite concluir.</p>
+  </div>
+</header>
+
+<main>
+  <p class="exemplo">Primeira vez? <button type="button" id="preencher">Veja preenchido com uma pesquisa de Black Friday</button>.</p>
+
+  <form id="form" novalidate>
+    <fieldset class="dado">
+      <legend><span class="num mono">00</span><span class="q">Qual é o número que você quer usar?</span></legend>
+      <p class="ajuda">Escreva como ele aparece na fonte, sem arredondar.</p>
+      <div class="campos txt"><label for="dado">O dado</label><input type="text" id="dado" placeholder="Ex.: 20% planejam fazer todas as compras na sexta"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend><span class="num mono">01</span><span class="q">Quem fez a pesquisa e quem pagou por ela?</span></legend>
+      <div class="campos">
+        <div class="duas txt">
+          <div><label for="fez">Quem fez (instituto, consultoria)</label><input type="text" id="fez" placeholder="Ex.: Opinion Box"></div>
+          <div><label for="pagou">Quem encomendou, se for outra empresa</label><input type="text" id="pagou" placeholder="Ex.: LWSA"></div>
+        </div>
+        <label class="op"><input type="radio" name="interesse" value="neutro"> Quem pagou não vende nada ligado ao resultado</label>
+        <label class="op"><input type="radio" name="interesse" value="setor"> Quem pagou é do setor estudado e pode ter interesse no resultado</label>
+        <label class="op"><input type="radio" name="interesse" value="ni"> Não está claro quem pagou</label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend><span class="num mono">02</span><span class="q">Quantas pessoas responderam?</span></legend>
+      <div class="campos txt"><label for="n">Número de entrevistas (deixe em branco se a fonte não informa)</label><input type="number" id="n" min="1" inputmode="numeric" placeholder="Ex.: 1044"></div>
+    </fieldset>
+
+    <fieldset>
+      <legend><span class="num mono">03</span><span class="q">Quem respondeu?</span></legend>
+      <p class="ajuda">É aqui que mais se erra. Um percentual de "quem pretende comprar" não é um percentual "dos brasileiros".</p>
+      <div class="campos">
+        <label class="op"><input type="radio" name="publico" value="geral"> Uma população ampla (adultos de um país, de uma cidade)</label>
+        <label class="op"><input type="radio" name="publico" value="grupo"> Um grupo específico (quem pretende comprar, clientes de uma marca, usuários de um app)</label>
+        <label class="op"><input type="radio" name="publico" value="ni"> A fonte não diz</label>
+        <div class="txt"><label for="quem">Descreva quem respondeu, como a fonte descreve</label><input type="text" id="quem" placeholder="Ex.: quem pretende comprar na Black Friday"></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend><span class="num mono">04</span><span class="q">Como os dados foram coletados?</span></legend>
+      <div class="campos">
+        <label class="op"><input type="radio" name="coleta" value="online"> Questionário online, em painel ou por link</label>
+        <label class="op"><input type="radio" name="coleta" value="telefone"> Entrevista por telefone</label>
+        <label class="op"><input type="radio" name="coleta" value="presencial"> Entrevista presencial</label>
+        <label class="op"><input type="radio" name="coleta" value="registro"> Registros reais: vendas, pedidos, uso de um serviço</label>
+        <label class="op"><input type="radio" name="coleta" value="ni"> A fonte não diz</label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend><span class="num mono">05</span><span class="q">O número mede o que as pessoas disseram ou o que fizeram?</span></legend>
+      <div class="campos">
+        <label class="op"><input type="radio" name="mede" value="intencao"> O que dizem que vão fazer (intenção, plano, preferência)</label>
+        <label class="op"><input type="radio" name="mede" value="memoria"> O que dizem que fizeram (lembrança de compra ou uso)</label>
+        <label class="op"><input type="radio" name="mede" value="fato"> O que de fato aconteceu (compra, pedido, acesso registrado)</label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend><span class="num mono">06</span><span class="q">Quando os dados foram coletados?</span></legend>
+      <div class="campos duas txt">
+        <div><label for="ini">Início da coleta</label><input type="date" id="ini"></div>
+        <div><label for="fim">Fim da coleta</label><input type="date" id="fim"></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend><span class="num mono">07</span><span class="q">Que lugar a pesquisa cobre?</span></legend>
+      <div class="campos">
+        <label class="op"><input type="radio" name="regiao" value="br"> O Brasil inteiro</label>
+        <label class="op"><input type="radio" name="regiao" value="parte"> Parte do Brasil (um estado, uma cidade, capitais)</label>
+        <label class="op"><input type="radio" name="regiao" value="fora"> Outro país ou vários países</label>
+        <label class="op"><input type="radio" name="regiao" value="ni"> A fonte não diz</label>
+        <div class="txt"><label for="onde">Qual, se for parte do Brasil ou outro país</label><input type="text" id="onde" placeholder="Ex.: capitais do Sudeste"></div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend><span class="num mono">08</span><span class="q">A fonte informa margem de erro?</span></legend>
+      <div class="campos txt"><label for="margem">Margem em pontos percentuais (deixe em branco se não informa)</label><input type="number" id="margem" min="0" step="0.1" inputmode="decimal" placeholder="Ex.: 3"></div>
+    </fieldset>
+
+    <div class="acoes"><button type="submit" class="btn">Ver a leitura</button></div>
+  </form>
+</main>
+
+<section id="resultado" hidden aria-live="polite" tabindex="-1">
+  <div class="wrap">
+    <h2 class="titulo">A leitura</h2>
+    <div class="bloco"><h3 class="mono">Frase que dá para usar</h3><p class="frase" id="r-frase"></p><button type="button" class="copiar" data-alvo="r-frase">copiar frase</button></div>
+    <div class="bloco"><h3 class="mono">Rodapé da fonte</h3><p class="rodape mono" id="r-rodape"></p><button type="button" class="copiar" data-alvo="r-rodape">copiar rodapé</button></div>
+    <div class="bloco"><h3 class="mono">Limites para citar junto</h3><ul id="r-limites"></ul></div>
+    <div class="bloco"><h3 class="mono">O que o número não permite concluir</h3><ul id="r-nao"></ul></div>
+    <p class="convite">Trabalha com pesquisa, marca ou planejamento e quer trocar uma ideia sobre isso? <a href="https://www.linkedin.com/in/diegomajor/" target="_blank" rel="noopener">Fale comigo no LinkedIn</a>.</p>
+  </div>
+</section>
+
+<footer>
+  <p>Feito por <a href="https://www.linkedin.com/in/diegomajor/" target="_blank" rel="noopener">Diego Major</a>. A ferramenta organiza a leitura a partir das suas respostas; ela não substitui ler a metodologia da pesquisa. Nada do que você digita sai do seu navegador.</p>
+</footer>
+
+<script>
+const $ = id => document.getElementById(id);
+const marcado = nome => (document.querySelector(`input[name="${nome}"]:checked`) || {}).value || '';
+const dataBR = iso => iso ? iso.split('-').reverse().join('/') : '';
+const num = v => v.toLocaleString('pt-BR');
+
+// Margem máxima teórica (p = 0,5, 95% de confiança, amostra aleatória simples).
+const margemTeorica = n => Math.round(1.96 * Math.sqrt(0.25 / n) * 1000) / 10;
+
+function ler(r, hoje = new Date()) {
+  const limites = [], nao = [];
+  const dado = r.dado.trim().replace(/[.;]$/, '');
+  const quem = r.quem.trim();
+  const autoria = [r.pagou.trim(), r.fez.trim()].filter(Boolean);
+
+  // Frase
+  let frase = '';
+  if (dado) {
+    const recorte = quem ? `Entre ${quem}, ` : 'Entre os entrevistados, ';
+    let fonte = '';
+    if (r.fez.trim() && r.pagou.trim()) fonte = `, segundo pesquisa de ${r.fez.trim()} encomendada por ${r.pagou.trim()}`;
+    else if (autoria.length) fonte = `, segundo ${autoria[0]}`;
+    frase = recorte + dado + fonte + '.';
+  } else {
+    frase = 'Escreva o dado na pergunta 00 para montar a frase.';
+  }
+
+  // 01 Quem pagou
+  if (!autoria.length) limites.push('A fonte não identifica quem fez a pesquisa. Procure o relatório original antes de usar o número.');
+  if (r.interesse === 'setor') limites.push(`Quem encomendou${r.pagou.trim() ? ' (' + r.pagou.trim() + ')' : ''} é do setor estudado. Cite o nome junto do número para que o leitor pese isso.`);
+  if (r.interesse === 'ni') limites.push('Não está claro quem pagou pela pesquisa. Diga isso ou procure a fonte original.');
+
+  // 02 Amostra
+  const n = parseInt(r.n, 10);
+  if (!n) {
+    limites.push('O número de entrevistas não foi informado. Sem ele, não dá para saber a precisão do resultado.');
+  } else {
+    const mt = margemTeorica(n);
+    if (n < 100) limites.push(`Com ${num(n)} entrevistas, o resultado serve como indício, não como medida.`);
+    if (r.coleta === 'online') limites.push(`Com ${num(n)} entrevistas, a margem teórica seria de cerca de ${num(mt)} pontos para mais ou para menos. Em painel online essa conta é só uma aproximação, porque a amostra não é sorteada.`);
+    else if (r.coleta !== 'registro') limites.push(`Com ${num(n)} entrevistas, a margem teórica é de cerca de ${num(mt)} pontos para mais ou para menos, considerando o total da amostra.`);
+    nao.push('Recortes por idade, região ou renda têm menos entrevistas e, portanto, margem maior que a do total.');
+  }
+
+  // 03 Público
+  if (r.publico === 'grupo') {
+    limites.push(`O percentual vale para ${quem || 'o grupo entrevistado'}, não para todos os consumidores.`);
+    nao.push(`Não dá para dizer "x% dos brasileiros" ou "x% dos consumidores". O número é de ${quem || 'um grupo específico'}.`);
+  }
+  if (r.publico === 'ni') limites.push('A fonte não diz quem respondeu. Sem isso, o percentual não tem base clara.');
+
+  // 04 Coleta
+  if (r.coleta === 'online') limites.push('Questionário online deixa de fora quem não está na internet ou não participa de painéis.');
+  if (r.coleta === 'ni') limites.push('A fonte não diz como os dados foram coletados.');
+  if (r.coleta === 'registro') limites.push('Registros mostram o que aconteceu em um conjunto de lojas, clientes ou plataformas. Confira quais estão incluídos antes de generalizar para o mercado.');
+
+  // 05 Intenção x fato
+  if (r.mede === 'intencao') {
+    limites.push('É intenção declarada. Use verbos como "pretendem", "planejam" ou "dizem", nunca "compram".');
+    nao.push('Não dá para prever quantas pessoas vão de fato comprar. O que as pessoas dizem que vão fazer costuma ser diferente do que fazem.');
+  }
+  if (r.mede === 'memoria') limites.push('É o que as pessoas lembram ter feito. Lembrança costuma ser imprecisa, sobretudo para compras pequenas ou antigas.');
+  if (r.mede === 'fato') nao.push('Mostra o que aconteceu, não o motivo. Para explicar o porquê, é preciso outra fonte.');
+
+  // 06 Período
+  if (!r.fim) limites.push('O período da coleta não foi informado.');
+  else {
+    const meses = (hoje - new Date(r.fim + 'T12:00:00')) / (1000 * 60 * 60 * 24 * 30.44);
+    if (meses > 12) limites.push(`Os dados foram coletados há mais de um ano (até ${dataBR(r.fim)}). Diga a data junto do número.`);
+    if (r.mede === 'intencao' && meses >= 0) nao.push(`A intenção foi medida até ${dataBR(r.fim)}. Planos mudam com preço, renda e notícias depois dessa data.`);
+  }
+
+  // 07 Região
+  if (r.regiao === 'parte') nao.push(`Não dá para estender o resultado para o Brasil inteiro. Ele cobre ${r.onde.trim() || 'só parte do país'}.`);
+  if (r.regiao === 'fora') nao.push(`Não dá para aplicar ao Brasil sem dizer que o dado é de ${r.onde.trim() || 'fora do país'}.`);
+  if (r.regiao === 'ni') limites.push('A fonte não diz que lugar a pesquisa cobre.');
+
+  // 08 Margem
+  const m = parseFloat(String(r.margem).replace(',', '.'));
+  if (m >= 0) nao.push(`Diferenças menores que ${num(2 * m)} pontos entre dois grupos podem não ser reais, já que a margem é de ${num(m)} pontos para cada lado.`);
+  else if (n && r.coleta !== 'registro') limites.push('A fonte não informa margem de erro. Use a margem teórica acima como referência, sem apresentá-la como dado da pesquisa.');
+
+  // Rodapé
+  const metodo = { online: 'online', telefone: 'por telefone', presencial: 'presenciais' }[r.coleta];
+  const partes = [];
+  if (autoria.length) partes.push(autoria.join(' e '));
+  if (n) partes.push(`${num(n)} ${r.coleta === 'registro' ? 'registros' : 'entrevistas'}${metodo ? ' ' + metodo : ''}${quem ? ' com ' + quem : ''}`);
+  if (r.ini && r.fim) partes.push(`${dataBR(r.ini)} a ${dataBR(r.fim)}`);
+  else if (r.fim) partes.push(`até ${dataBR(r.fim)}`);
+  if ((r.regiao === 'parte' || r.regiao === 'fora') && r.onde.trim()) partes.push(r.onde.trim());
+  if (m >= 0) partes.push(`margem de ${num(m)} pontos`);
+  const rodape = partes.length ? partes.join(' · ') : 'Faltam informações para montar o rodapé.';
+
+  if (!nao.length) nao.push('Nada além dos limites acima, com as respostas dadas.');
+  return { frase, rodape, limites, nao };
+}
+
+function coletar() {
+  return {
+    dado: $('dado').value, fez: $('fez').value, pagou: $('pagou').value, interesse: marcado('interesse'),
+    n: $('n').value, publico: marcado('publico'), quem: $('quem').value, coleta: marcado('coleta'),
+    mede: marcado('mede'), ini: $('ini').value, fim: $('fim').value, regiao: marcado('regiao'),
+    onde: $('onde').value, margem: $('margem').value
+  };
+}
+
+function lista(el, itens) {
+  el.replaceChildren(...itens.map(t => { const li = document.createElement('li'); li.textContent = t; return li; }));
+}
+
+$('form').addEventListener('submit', e => {
+  e.preventDefault();
+  const out = ler(coletar());
+  $('r-frase').textContent = out.frase;
+  $('r-rodape').textContent = out.rodape;
+  lista($('r-limites'), out.limites.length ? out.limites : ['Nenhum limite apontado pelas respostas.']);
+  lista($('r-nao'), out.nao);
+  const sec = $('resultado'); sec.hidden = false; sec.focus(); sec.scrollIntoView({ behavior: 'smooth' });
+});
+
+document.querySelectorAll('.copiar').forEach(b => b.addEventListener('click', async () => {
+  try { await navigator.clipboard.writeText($(b.dataset.alvo).textContent); b.textContent = 'copiado'; }
+  catch { b.textContent = 'selecione e copie'; }
+}));
+
+$('preencher').addEventListener('click', () => {
+  // Pesquisa LWSA / Opinion Box, Black Friday 2026 (CNDL, 22/09/2026).
+  const v = { dado: '20% planejam fazer todas as compras na sexta, 27/11', fez: 'Opinion Box', pagou: 'LWSA', n: '1044',
+    quem: 'quem pretende comprar na Black Friday', ini: '2026-07-31', fim: '2026-08-19', margem: '3', onde: '' };
+  Object.entries(v).forEach(([k, x]) => $(k).value = x);
+  [['interesse', 'setor'], ['publico', 'grupo'], ['coleta', 'online'], ['mede', 'intencao'], ['regiao', 'br']]
+    .forEach(([nome, val]) => document.querySelector(`input[name="${nome}"][value="${val}"]`).checked = true);
+  $('form').requestSubmit();
+});
+</script>
+</body>
+</html>
